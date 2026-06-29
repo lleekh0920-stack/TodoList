@@ -12,6 +12,7 @@
         <button type="submit">추가</button>
     </form>
 
+    <p id="message"></p>
     <div>
         <input id="search-input" type="text" placeholder="검색어를 입력하세요">
         <button id="search-button" type="button">검색</button>
@@ -20,9 +21,12 @@
         <button id="completed-button" type="button">완료</button>
     </div>
 
-<ul id="todo-list"></ul>
+    <ul id="todo-list"></ul>
+
+
 
     <script>
+        const message=document.getElementById("message");
         const form = document.getElementById("todo-form");
         const input = document.getElementById("todo-input");
         const todoList= document.getElementById("todo-list");
@@ -33,6 +37,14 @@
         const completedButton= document.getElementById("completed-button")
 
         let currentCompleted= null;
+
+        function showMessage(text){
+            message.textContent = text;
+        }
+
+        function clearMessage(){
+            message.textContent = "";
+        }
 
         async function loadTodos(){
             const keyword = searchInput.value.trim();
@@ -58,14 +70,21 @@
                 const li = document.createElement("li");
 
                 const text = document.createElement("span");
-                text.textContent = todo.completed ? '[완료] ${todo.content}' : todo.content;
+                text.textContent = todo.completed ? `[완료] ${todo.content}` : todo.content;
 
                 const toggleButton = document.createElement("button");
                 toggleButton.textContent = "완료 변경";
                 toggleButton.addEventListener("click",async () => {
-                    await fetch(`/todos/${todo.id}/toggle`,{
+                    const response=await fetch(`/todos/${todo.id}/toggle`,{
                         method: "PATCH"
                     });
+
+                    if(!response.ok){
+                        showMessage("완료 상태 변경에 실패했습니다.");
+                        return;
+                    }
+
+                    clearMessage();
                     loadTodos();
                 });
 
@@ -98,9 +117,17 @@
                 const deleteButton = document.createElement("button");
                 deleteButton.textContent="삭제";
                 deleteButton.addEventListener("click", async () => {
-                    await fetch(`/todos/${todo.id}`,{
+
+                    const response = await fetch(`/todos/${todo.id}`,{
                         method: "DELETE"
                     });
+
+                    if(!response.ok){
+                        showMessage("todo 삭제에 실패했습니다.")
+                        return;
+                    }
+
+                    clearMessage();
                     loadTodos();
                 });
 
@@ -148,7 +175,7 @@
                 return;
             }
 
-            await fetch("/todos",{
+            const response = await fetch("/todos",{
                 method: "POST",
                 headers: {
                     "Content-Type" : "application/json"
@@ -156,6 +183,12 @@
                 body: JSON.stringify({ content })
             });
 
+            if (!response.ok){
+                showMessage("Todo 추가에 실패했습니다.");
+                return;
+            }
+
+            clearMessage();
             input.value="";
             loadTodos();
         });
