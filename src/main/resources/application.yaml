@@ -1,0 +1,20 @@
+spring:
+  application: #애플리케이션 이름 설정
+    name: TodoList
+
+  datasource: #DB 연결 설정
+      url: jdbc:h2:mem:todolist   #DB 주소
+      driver-class-name: org.h2.Driver #h2 드라이버 클래스 이름
+      #h2 기본정보
+      username: sa
+      password:
+  #h2 콘솔을 켜는 Spring Boot 설정
+  h2: # 자바 기반 데이터베이스
+    console:
+      enabled: true
+      path: /h2-console #H2 콘솔에 접속할 주소를 정하는 설정
+  #JPA/Hibernate가 Entity를 보고 테이블을 어떻게 만들지 정하는 설정
+  jpa:
+     hibernate: #Java 객체와 DB 사이에서 SQl을 대신 만들어주는 JPA 구현체
+      ddl-auto: create # Entity를 보고 테이블을 자동으로 만들거나 검사할지 정하는 설정
+      show-sql: true
