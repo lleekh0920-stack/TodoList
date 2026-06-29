@@ -1,42 +1,55 @@
 package com.kang.app.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity  //DB테이블이 될 자바 클래스
+// @Entity: JPA가 이 클래스를 DB 테이블과 연결된 객체로 인식하게 합니다.
+@Entity
 @Getter
-@NoArgsConstructor // JPA는 기본 생성자가 필요하다..?
+@NoArgsConstructor
+// 생성일/수정일 자동 기록을 위해 JPA Auditing Listener를 연결합니다.
 @EntityListeners(AuditingEntityListener.class)
 public class Todo {
 
+    // @Id: 이 필드가 테이블의 기본키(PK)라는 뜻입니다.
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // id 값을 DB가 자동으로 증가시키게 해줌
+    // IDENTITY: DB가 id 값을 1, 2, 3...처럼 자동 증가시킵니다.
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String content; // content => ToDo의 내용
-    private boolean completed; // 완료 여부
 
+    private String content;
+
+    private boolean completed;
+
+    // 처음 저장될 때 시간이 자동으로 들어갑니다.
     @CreatedDate
     private LocalDateTime createdAt;
 
+    // 수정될 때마다 시간이 자동으로 갱신됩니다.
     @LastModifiedDate
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 
-    public Todo(String content){ // ToDo를 새로 만들었을때 사용할 생성자
+    public Todo(String content) {
         this.content = content;
         this.completed = false;
     }
-    public void toggleCompleted(){  // 완료상태를 반대로 바꾸는 메서드;
+
+    // Entity 내부 상태 변경은 메서드로 표현해두면 의미가 분명해집니다.
+    public void toggleCompleted() {
         this.completed = !this.completed;
     }
-    public void updateContent(String content){
+
+    public void updateContent(String content) {
         this.content = content;
     }
 }
