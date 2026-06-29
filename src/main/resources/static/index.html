@@ -1,10 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Todo List</title>
 </head>
 <body>
+    <h1>Todo List</h1>
 
+    <form id="todo-form">
+        <input id="todo-input" type="text" placeholder="할 일을 입력하세요" >
+        <button type="submit">추가</button>
+    </form>
+
+    <div>
+        <input id="search-input" type="text" placeholder="검색어를 입력하세요">
+        <button id="search-button" type="button">검색</button>
+        <button id="all-button" type="button">전체</button>
+        <button id="active-button" type="button">미완료</button>
+        <button id="completed-button" type="button">완료</button>
+    </div>
+
+<ul id="todo-list"></ul>
+
+    <script>
+        const form = document.getElementById("todo-form");
+        const input = document.getElementById("todo-input");
+        const todoList= document.getElementById("todo-list");
+        const searchInput=document.getElementById("search-input");
+        const searchButton=document.getElementById("search-button");
+        const allButton=document.getElementById("all-button");
+        const activeButton = document.getElementById("active-button");
+        const completedButton= document.getElementById("completed-button")
+
+        let currentCompleted= null;
+
+        async function loadTodos(){
+            const keyword = searchInput.value.trim();
+
+            const params = new URLSearchParams();
+
+            if (keyword){
+                params.append("keyword",keyword);
+            }
+            if (currentCompleted !== null){
+                params.append("completed", currentCompleted);
+            }
+
+            const queryString = params.toString();
+            const url = queryString ? `/todos?${queryString}` : "/todos";
+
+            const response = await fetch(url);
+            const todos = await response.json();
+
+            todoList.innerHTML="";
+
+            todos.forEach(todo => {
+                const li = document.createElement("li");
+
+                const text = document.createElement("span");
+                text.textContent = todo.completed ? '[완료] ${todo.content}' : todo.content;
+
+                const toggleButton = document.createElement("button");
+                toggleButton.textContent = "완료 변경";
+                toggleButton.addEventListener("click",async () => {
+                    await fetch(`/todos/${todo.id}/toggle`,{
+                        method: "PATCH"
+                    });
+                    loadTodos();
+                });
+
+                const updateButton=document.createElement("button");
+                updateButton.textContent="수정";
+                updateButton.addEventListener("click",async () => {
+                    const newContent = prompt("수정할 내용을 입력하세요.",todo.content);
+
+                    if(newContent === null){
+                        return;
+                    }
+
+                    const content = newContent.trim();
+
+                    if(!content){
+                        alert("할 일을 입력하세요.");
+                        return;
+                    }
+
+                    await fetch (`/todos/${todo.id}`,{
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ content })
+                    });
+                    loadTodos();
+                })
+
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent="삭제";
+                deleteButton.addEventListener("click", async () => {
+                    await fetch(`/todos/${todo.id}`,{
+                        method: "DELETE"
+                    });
+                    loadTodos();
+                });
+
+                li.appendChild(text);
+                li.appendChild(toggleButton);
+                li.appendChild(deleteButton);
+                li.appendChild(updateButton);
+
+                todoList.appendChild(li);
+            });
+        }
+
+        searchButton.addEventListener("click", () => {
+            loadTodos();
+        })
+
+        searchInput.addEventListener("keydown",(event)=> {
+            if (event.key === "Enter"){
+                loadTodos();
+            }
+        });
+
+        allButton.addEventListener("click", () => {
+            currentCompleted = null;
+            loadTodos();
+        });
+
+        activeButton.addEventListener("click", () => {
+            currentCompleted = false;
+            loadTodos();
+        });
+
+        completedButton.addEventListener("click", () => {
+            currentCompleted = true;
+            loadTodos();
+        })
+
+        form.addEventListener("submit", async (event)=>{
+            event.preventDefault();
+
+            const content = input.value.trim();
+
+            if(!content){
+                alert("할 일을 입력하세요");
+                return;
+            }
+
+            await fetch("/todos",{
+                method: "POST",
+                headers: {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({ content })
+            });
+
+            input.value="";
+            loadTodos();
+        });
+
+        loadTodos();
+
+
+    </script>
 </body>
 </html>

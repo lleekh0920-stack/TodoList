@@ -1,8 +1,8 @@
-POST http://localhost:8080/todos/1
+POST http://localhost:8080/todos
 Content-Type: application/json
 
 {
-    "content": "바보똥깨"
+    "content": "WHAT??"
 }
 
 
